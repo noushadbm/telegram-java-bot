@@ -17,4 +17,10 @@ public interface TaskLockRepository extends JpaRepository<TaskLockEntity, String
             @QueryHint(name = "jakarta.persistence.lock.timeout", value = "1000")
     })
     Optional<TaskLockEntity> findByTaskIdAndLastExecutionLessThan(String taskId, long timestamp);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({
+            @QueryHint(name = "jakarta.persistence.lock.timeout", value = "1000")
+    })
+    Optional<TaskLockEntity> findByTaskId(String lockId);
 }

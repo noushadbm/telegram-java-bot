@@ -1,6 +1,7 @@
 package com.rayshan.taskscheduler.entities;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,10 +9,12 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 
 @Table(name="scheduled_tasks")
 @Data
 @Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduledTaskEntity {
@@ -24,4 +27,11 @@ public class ScheduledTaskEntity {
 
     @Column(name = "status")
     private String status;
+
+    @Column(name = "submitted_time")
+    private LocalDateTime submittedTime;
+
+    @Column(name = "retry_count")
+    private Long retryCount;
+
 }

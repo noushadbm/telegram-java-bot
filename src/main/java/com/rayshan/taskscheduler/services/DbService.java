@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +34,13 @@ public class DbService {
             // Keep maximum 10 in pending.
             if(pending.size() < 10) {
                 TaskLockEntity createTask = taskLockOpt.get();
-                ScheduledTaskEntity newTask = new ScheduledTaskEntity(UUID.randomUUID().toString(), createdBy, "PENDING");
+                ScheduledTaskEntity newTask = ScheduledTaskEntity.builder()
+                        .scheduledTaskId(UUID.randomUUID().toString())
+                        .createdBy(createdBy)
+                        .status("PENDING")
+                        .retryCount(0l)
+                        .submittedTime(LocalDateTime.now())
+                        .build();
                 ScheduledTaskEntity newScheduledTask = scheduledTasksRepository.save(newTask);
                 createTask.setLastExecution(System.currentTimeMillis());
                 return newScheduledTask;
@@ -59,6 +66,24 @@ public class DbService {
             }
         }
         return null;
+    }
+
+    @Transactional
+    public void reRunStuckTasks() {
+        Optional<TaskLockEntity> taskLock = taskLockRepository.findByTaskId("re-run");
+        if(taskLock == null) {
+            System.out.println("Didn't get lock.");
+        } else {
+            LocalDateTime tenMinBack = LocalDateTime.now().minusMinutes(10);
+            // Get one task for execution.
+            ScheduledTaskEntity stuckMoreThan10Min = scheduledTasksRepository.getStuckTask(tenMinBack);
+            if(stuckMoreThan10Min != null) {
+                System.out.println("Found a stuck task with ID " + stuckMoreThan10Min.getScheduledTaskId() + ". Updating status to re-run.");
+                stuckMoreThan10Min.setStatus("PENDING");
+                stuckMoreThan10Min.setSubmittedTime(LocalDateTime.now());
+                stuckMoreThan10Min.setRetryCount(stuckMoreThan10Min.getRetryCount() + 1);
+            }
+        }
     }
 
     @Transactional
