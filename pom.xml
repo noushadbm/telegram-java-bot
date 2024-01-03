@@ -9,23 +9,22 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.rayshan</groupId>
-	<artifactId>task-scheduler</artifactId>
+	<artifactId>bot-springboot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>task-scheduler</name>
-	<description>Task Scheduler</description>
+	<description>Springboot telegram bot</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
 		<dependency>
-			<groupId>com.oracle.database.jdbc</groupId>
-			<artifactId>ojdbc11</artifactId>
-			<scope>runtime</scope>
+			<groupId>org.telegram</groupId>
+			<artifactId>telegrambots</artifactId>
+			<version>6.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
