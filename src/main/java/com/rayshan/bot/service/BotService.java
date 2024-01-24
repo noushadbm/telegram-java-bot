@@ -6,17 +6,20 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 
 @Service
 @Log4j2
 public class BotService extends TelegramLongPollingBot {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
     @Override
     public String getBotUsername() {
         return "TutorialBot";
@@ -75,17 +78,36 @@ public class BotService extends TelegramLongPollingBot {
             } else if (inMessage.hasPhoto()) {
                 log.info("Image present....");
                 List<PhotoSize> photos = inMessage.getPhoto();
-                if(photos.size() > 0) {
+                if (photos.size() > 0) {
                     PhotoSize photo = photos.get(3);
                     String fileId = photo.getFileId();
-                    GetFile getFileRequest = new GetFile();
-                    getFileRequest.setFileId(fileId);
-                    String filePath = execute(getFileRequest).getFilePath();
-                    File newFile = downloadFile(filePath, new File("downloads/test-" + new Random().nextInt(100) + ".jpg"));
+                    downloadFileToLocal(fileId, "audio", ".jpg");
                 }
+            } else if (inMessage.hasVoice()) {
+                log.info("Recorded Voice present....");
+                Voice voice = inMessage.getVoice();
+                //log.info("File mime type: {}", voice.getMimeType());
+                downloadFileToLocal(voice.getFileId(), "voice", ".ogg");
+
+            } else if (inMessage.hasAudio()) {
+                log.info("Audio present....");
+                Audio audio = inMessage.getAudio();
+                //log.info("File mime type: {}", audio.getMimeType());
+                log.info("File name: {}", audio.getFileName());
+                downloadFileToLocal(audio.getFileId(), audio.getFileName(), ".mp3");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private File downloadFileToLocal(String fileId, String prefix, String fileExtension) throws TelegramApiException {
+        GetFile getFileRequest = new GetFile();
+        getFileRequest.setFileId(fileId);
+        String filePath = execute(getFileRequest).getFilePath();
+        String fileName = LocalDateTime.now().format(FORMATTER);
+        File newFile = downloadFile(filePath, new File("downloads/" + prefix + "-" + fileName + fileExtension));
+        log.info("File downloaded. File : {}", newFile.getAbsolutePath());
+        return newFile;
     }
 }
